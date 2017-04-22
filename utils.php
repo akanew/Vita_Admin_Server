@@ -9,6 +9,7 @@
 	abstract class ProcessOpers {
 
 		protected $paramArray;
+		protected $jsonObj;
 		protected $error;
 		protected $errorName = "";
 		// Ошибки
@@ -17,10 +18,13 @@
 
 		private $method;
 
+
 		public function processRequest()
 		{		
-			$op = $this->checkMethod();
 			$this->paramArray = $this->getParamsArray();
+			$this->jsonObj = json_decode($this->paramArray);
+			$op = $this->splitMethod();
+
 			switch($op) {
 				case GET:
 					$this->getObject();
@@ -53,32 +57,21 @@
 			return json_encode($arr);
 		}
 
-		public function checkMethod()		
+		public function splitMethod()
 		{
-			$this->method = $_SERVER['REQUEST_METHOD'];
-			switch ($this->method) {
-				case 'GET':
-					return GET;
-					break;
-				case 'POST':
-					return CREATE;
-					break;
-				case 'PUT':
-					return EDIT;
-					break;
-				case 'DELETE':
-					return DELETE;
-					break;
-				default:
-					return UNKNOWN;
-					break;
+			$operations = Array ("add" => CREATE, "update" => EDIT, "get" => GET, "delete" => DELETE);
+			foreach($operations as $operation => $opId){
+				if($this->jsonObj->$operation != NULL){
+					$this->jsonObj = $this->jsonObj->$operation;
+					return $opId;
+				}
 			}
+			return UNKNOWN;
 		}
 
 		public function getParamsArray()		
 		{
-			//return file_get_contents('php://input'); 
-			return $_POST;
+			return file_get_contents('php://input'); 
 		}
 
 	}
