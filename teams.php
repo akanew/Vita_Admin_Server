@@ -15,12 +15,11 @@
 		// Получить данные клиента или список клиентов
 		protected function getObject()
 		{
-			if ($this->jsonObj->{$this->teamId} != null)		
+			if ($this->paramArray[$this->teamId] != null)		
 			{
 				$db = new DB;
-				$result = $db->GetResult("CALL getTeam(".$this->jsonObj->{$this->teamId}.")");
+				$result = $db->GetResult("CALL getTeam(".$this->paramArray[$this->teamId].")");
 				if ($result['status'] == 1)
-				{
 					$this->error = 0;
 				else
 					$this->createError($this->sqlError);
@@ -39,10 +38,10 @@
 		// Создать клиента
 		protected function createObject()
 		{				
-			if (($this->jsonObj->{$this->teamName} != null)  &&  (strlen($this->jsonObj->{$this->teamName}) > 0)  &&  ($this->jsonObj->{$this->sanatoriumId} != null))		
+			if (($this->paramArray[$this->teamName] != null)  &&  (strlen($this->paramArray[$this->teamName]) > 0)  &&  ($this->paramArray[$this->sanatoriumId] != null))		
 			{
 				$db = new DB;
-				$result = $db->ExecQueryWithoutResult("CALL addTeam('".$this->jsonObj->{$this->teamName}."', ".$this->jsonObj->{$this->sanatoriumId}.")");
+				$result = $db->ExecQueryWithoutResult("CALL addTeam('".$this->paramArray[$this->teamName]."', ".$this->paramArray[$this->sanatoriumId].")");
 				if ($result['status'] == 1)
 					$this->error = 0;
 				else
@@ -56,10 +55,10 @@
 		// Редактировать клиента
 		protected function editObject()
 		{
-			if (($this->jsonObj->{$this->teamId} != null)  && ($this->jsonObj->{$this->teamName} != null)  &&  (strlen($this->jsonObj->{$this->teamName}) > 0)  &&  ($this->jsonObj->{$this->sanatoriumId} != null))		
+			if (($this->paramArray[$this->teamId] != null)  && ($this->paramArray[$this->teamName] != null)  &&  (strlen($this->paramArray[$this->teamName]) > 0)  &&  ($this->paramArray[$this->sanatoriumId] != null))		
 			{
 				$db = new DB;
-				$result = $db->ExecQueryWithoutResult("CALL editTeam(".$this->jsonObj->{$this->teamId}.", '".$this->jsonObj->{$this->teamName}."', ".$this->jsonObj->{$this->sanatoriumId}.")");
+				$result = $db->ExecQueryWithoutResult("CALL editTeam(".$this->paramArray[$this->teamId].", '".$this->paramArray[$this->teamName]."', ".$this->paramArray[$this->sanatoriumId].")");
 				if ($result['status'] == 1)
 					$this->error = 0;
 				else
@@ -87,6 +86,5 @@
 	}
 
 	$teams = new Teams;
-	$teams->processRequest();	
-
+	$teams->processRequest();
 ?>

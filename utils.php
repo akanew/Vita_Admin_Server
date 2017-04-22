@@ -9,7 +9,6 @@
 	abstract class ProcessOpers {
 
 		protected $paramArray;
-		protected $jsonObj;
 		protected $error;
 		protected $errorName = "";
 		// Ошибки
@@ -18,12 +17,10 @@
 
 		private $method;
 
-
 		public function processRequest()
 		{		
 			$op = $this->checkMethod();
 			$this->paramArray = $this->getParamsArray();
-			$this->jsonObj = json_decode($this->paramArray);
 			switch($op) {
 				case GET:
 					$this->getObject();
@@ -80,7 +77,8 @@
 
 		public function getParamsArray()		
 		{
-			return file_get_contents('php://input'); 
+			//return file_get_contents('php://input'); 
+			return $_POST;
 		}
 
 	}
