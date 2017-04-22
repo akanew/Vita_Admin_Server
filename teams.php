@@ -15,10 +15,27 @@
 		// Получить данные клиента или список клиентов
 		protected function getObject()
 		{
-			if ($this->jsonObj->{$this->teamId} != null)		
+			if ($this->jsonObj->{$this->teamId} != null)
 			{
 				$db = new DB;
-				$result = $db->GetResult("CALL getTeam(".$this->jsonObj->{$this->teamId}.")");
+				$result = $db->ExecQueryWithoutResult('CALL getTeam("'.$this->jsonObj->{$this->teamId}.'")');
+				if ($result['status'] == 1)
+					$this->error = 0;
+				else
+					$this->createError($this->sqlError);
+			}
+			else
+				$this->createError($this->notCorrectParameters);
+			echo $this->getStatus();
+		}
+		
+		// Удалить данные клиента
+		protected function deleteObject()
+		{
+			if ($this->jsonObj->{$this->teamId} != null)
+			{
+				$db = new DB;
+				$result = $db->ExecQueryWithoutResult('CALL deleteTeam("'.$this->jsonObj->{$this->teamId}.'")');
 				if ($result['status'] == 1)
 					$this->error = 0;
 				else

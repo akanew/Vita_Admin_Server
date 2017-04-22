@@ -36,7 +36,7 @@
 					$this->editObject();
 					break;
 				case DELETE:
-					$this->deleteClient();
+					$this->deleteObject();
 					break;
 				case UNKNOWN:
 					$this->errorObject();
