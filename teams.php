@@ -15,35 +15,28 @@
 		// Получить данные клиента или список клиентов
 		protected function getObject()
 		{
-			if ($this->jsonObj->{$this->teamId} != null)
+			if ($this->paramArray[$this->teamId] != null)
 			{
 				$db = new DB;
-				$result = $db->ExecQueryWithoutResult('CALL getTeam("'.$this->jsonObj->{$this->teamId}.'")');
-				if ($result['status'] == 1)
+				
+				if($this->paramArray[$this->teamId] != 0)
+					$result = $db->GetResult('CALL getTeam("'.$this->paramArray[$this->teamId].'")');
+				else if ($this->paramArray[$this->sanatoriumId] != null)
+					$result = $db->GetResult('CALL getTeamList("'.$this->paramArray[$this->sanatoriumId].'")');
+				
+				if ($result['status'] == 1){
 					$this->error = 0;
+					$this->resultArray = $result['result'];
+				}
 				else
 					$this->createError($this->sqlError);
 			}
 			else
 				$this->createError($this->notCorrectParameters);
-			echo $this->getStatus();
-		}
-		
-		// Удалить данные клиента
-		protected function deleteObject()
-		{
-			if ($this->jsonObj->{$this->teamId} != null)
-			{
-				$db = new DB;
-				$result = $db->ExecQueryWithoutResult('CALL deleteTeam("'.$this->jsonObj->{$this->teamId}.'")');
-				if ($result['status'] == 1)
-					$this->error = 0;
-				else
-					$this->createError($this->sqlError);
-			}
-			else
-				$this->createError($this->notCorrectParameters);
-			echo $this->getStatus();
+			
+			if($this->error > 0)
+				echo $this->getStatus();
+			else echo $this->getResultArray();
 		}
 
 		private function createError($mes)
@@ -54,11 +47,11 @@
 
 		// Создать клиента
 		protected function createObject()
-		{	
-			if (($this->jsonObj->{$this->teamName} != null)  &&  (strlen($this->jsonObj->{$this->teamName}) > 0)  &&  ($this->jsonObj->{$this->sanatoriumId} != null))		
+		{				
+			if (($this->paramArray[$this->teamName] != null)  &&  (strlen($this->paramArray[$this->teamName]) > 0)  &&  ($this->paramArray[$this->sanatoriumId] != null))		
 			{
 				$db = new DB;
-				$result = $db->ExecQueryWithoutResult("CALL addTeam('".$this->jsonObj->{$this->teamName}."', ".$this->jsonObj->{$this->sanatoriumId}.")");
+				$result = $db->ExecQueryWithoutResult("CALL addTeam('".$this->paramArray[$this->teamName]."', ".$this->paramArray[$this->sanatoriumId].")");
 				if ($result['status'] == 1)
 					$this->error = 0;
 				else
@@ -72,10 +65,10 @@
 		// Редактировать клиента
 		protected function editObject()
 		{
-			if (($this->jsonObj->{$this->teamId} != null)  && ($this->jsonObj->{$this->teamName} != null)  &&  (strlen($this->jsonObj->{$this->teamName}) > 0)  &&  ($this->jsonObj->{$this->sanatoriumId} != null))		
+			if (($this->paramArray[$this->teamId] != null)  && ($this->paramArray[$this->teamName] != null)  &&  (strlen($this->paramArray[$this->teamName]) > 0)  &&  ($this->paramArray[$this->sanatoriumId] != null))		
 			{
 				$db = new DB;
-				$result = $db->ExecQueryWithoutResult("CALL editTeam(".$this->jsonObj->{$this->teamId}.", '".$this->jsonObj->{$this->teamName}."', ".$this->jsonObj->{$this->sanatoriumId}.")");
+				$result = $db->ExecQueryWithoutResult("CALL editTeam(".$this->paramArray[$this->teamId].", '".$this->paramArray[$this->teamName]."', ".$this->paramArray[$this->sanatoriumId].")");
 				if ($result['status'] == 1)
 					$this->error = 0;
 				else
@@ -86,11 +79,21 @@
 			echo $this->getStatus();
 		}
 
-		// Удалить клиента
+		// Удалить данные клиента
 		protected function deleteObject()
 		{
-			echo "DELETE\n";
-			echo $this->paramArray;
+			if ($this->paramArray[$this->teamId] != null)
+			{
+				$db = new DB;
+				$result = $db->ExecQueryWithoutResult('CALL deleteTeam("'.$this->paramArray[$this->teamId].'")');
+				if ($result['status'] == 1)
+					$this->error = 0;
+				else
+					$this->createError($this->sqlError);
+			}
+			else
+				$this->createError($this->notCorrectParameters);
+			echo $this->getStatus();
 		}
 
 		// Ошибка - неизвестный протокол

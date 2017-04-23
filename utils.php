@@ -12,6 +12,7 @@
 		protected $jsonObj;
 		protected $error;
 		protected $errorName = "";
+		protected $resultArray;
 		// Ошибки
 		protected $notCorrectParameters = "Not correct parameters!";
 		protected $sqlError = "SQL error!";
@@ -21,10 +22,10 @@
 
 		public function processRequest()
 		{		
+			$op = $this->checkMethod();
 			$this->paramArray = $this->getParamsArray();
-			$this->jsonObj = json_decode($this->paramArray);
-			$op = $this->splitMethod();
-
+			//$this->jsonObj = json_encode($this->paramArray);
+			
 			switch($op) {
 				case GET:
 					$this->getObject();
@@ -56,22 +57,40 @@
 			$arr = array('status' => $status, 'errorName' => $this->errorName);
 			return json_encode($arr);
 		}
+		
+		protected function getResultArray(){
+			return json_encode($this->resultArray);
+		}
 
-		public function splitMethod()
+		public function checkMethod()		
 		{
-			$operations = Array ("add" => CREATE, "update" => EDIT, "get" => GET, "delete" => DELETE);
-			foreach($operations as $operation => $opId){
-				if($this->jsonObj->$operation != NULL){
-					$this->jsonObj = $this->jsonObj->$operation;
-					return $opId;
-				}
+			$this->method = $_SERVER['REQUEST_METHOD'];
+			switch ($this->method) {
+				case 'GET':
+					return GET;
+					break;
+				case 'POST':
+					return CREATE;
+					break;
+				case 'PUT':
+					return EDIT;
+					break;
+				case 'DELETE':
+					return DELETE;
+					break;
+				default:
+					return UNKNOWN;
+					break;
 			}
-			return UNKNOWN;
 		}
 
 		public function getParamsArray()		
 		{
-			return file_get_contents('php://input'); 
+			if($_SERVER['REQUEST_METHOD'] == 'GET')
+				$httpStr = $_SERVER["QUERY_STRING"];
+			else $httpStr = file_get_contents('php://input');
+			parse_str($httpStr, $output);
+			return $output;				
 		}
 
 	}
@@ -168,12 +187,12 @@
 			if ($this->DB_connect_and_DB_choose())
 			{
 				$this->ExecQuery($query_set_names, 0);
-				$result['sresult'] = $this->ExecQuery($sql, 1);
+				$result['result'] = $this->ExecQuery($sql, 1);
 				$result['status'] = 1;
 			}
 			else				
 				$result['status'] = 0;
-			return $res;
+			return $result;
 		}
 
 		// Выполнить запрос, не возвращаюший результат
