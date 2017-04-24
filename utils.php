@@ -12,8 +12,7 @@
 		protected $jsonObj;
 		protected $error;
 		protected $errorName = "";
-		protected $resultArray;
-		// РћС€РёР±РєРё
+		// Ошибки
 		protected $notCorrectParameters = "Not correct parameters!";
 		protected $sqlError = "SQL error!";
 
@@ -24,8 +23,7 @@
 		{		
 			$op = $this->checkMethod();
 			$this->paramArray = $this->getParamsArray();
-			//$this->jsonObj = json_encode($this->paramArray);
-			
+			$this->jsonObj = json_decode($this->paramArray);
 			switch($op) {
 				case GET:
 					$this->getObject();
@@ -37,7 +35,7 @@
 					$this->editObject();
 					break;
 				case DELETE:
-					$this->deleteObject();
+					$this->deleteClient();
 					break;
 				case UNKNOWN:
 					$this->errorObject();
@@ -56,10 +54,6 @@
 			$status = $this->error > 0 ? "error" : "ok";
 			$arr = array('status' => $status, 'errorName' => $this->errorName);
 			return json_encode($arr);
-		}
-		
-		protected function getResultArray(){
-			return json_encode($this->resultArray);
 		}
 
 		public function checkMethod()		
@@ -86,26 +80,22 @@
 
 		public function getParamsArray()		
 		{
-			if($_SERVER['REQUEST_METHOD'] == 'GET')
-				$httpStr = $_SERVER["QUERY_STRING"];
-			else $httpStr = file_get_contents('php://input');
-			parse_str($httpStr, $output);
-			return $output;				
+			return file_get_contents('php://input'); 
 		}
 
 	}
 
 	class DB {
 
-		// Link Рє Р‘Р”
+		// Link к БД
 		private $db_link = null; 
 
 		protected  $query_set_names = "SET NAMES utf8";
 
-		// РњР°СЃСЃРёРІ СЃ СЂРµР·СѓР»СЊС‚Р°С‚РѕРј РІС‹РїРѕР»РЅРµРЅРёСЏ Р·Р°РїСЂРѕСЃР°
+		// Массив с результатом выполнения запроса
 		private $query_results = array(); 
 
-		// РњР°СЃСЃРёРІ СЃ РЅР°СЃС‚СЂРѕР№РєР°РјРё РґРѕСЃС‚СѓРїР° Рє Р‘Р”
+		// Массив с настройками доступа к БД
 		protected $config = array(
 		
 			'user' => "root",
@@ -123,7 +113,7 @@
 		);
 		
 
-		// РџРѕРґРєР»СЋС‡РёС‚СЊСЃСЏ Рє СЃРµСЂРІРµСЂСѓ Рё РІС‹Р±СЂР°С‚СЊ Р‘Р”
+		// Подключиться к серверу и выбрать БД
 		public function DB_connect_and_DB_choose()
 		{
 			$this->DB_connect();
@@ -133,7 +123,7 @@
 			
 		}
 		
-		// РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РјР°СЃСЃРёРІР° config
+		// Инициализация массива config
 		public function Init($user, $password, $host, $db, $type, $charset)			
 		{
 			$this->config['user']=$user;
@@ -144,25 +134,25 @@
 			$this->config['charset']=$charset;
 		}
 
-		// РџРѕРєРґР»СЋС‡РµРЅРёРµ Рє СЃРµСЂРІРµСЂСѓ
+		// Покдлючение к серверу
 		public function DB_connect()
 		{
 			$this->db_link = mysql_connect($this->config['host'], $this->config['user'], $this->config['password']);			
 		}
 
-		// Р’С‹Р±РѕСЂ Р‘Р”
+		// Выбор БД
 		public function DB_choose()
 		{
 			return mysql_select_db($this->config['db'], $this->db_link);
 		}
 
-		// Р—Р°РєСЂС‹С‚РёРµ СЃРѕРµРґРёРЅРµРЅРёСЏ СЃ Р‘Р”
+		// Закрытие соединения с БД
 		public function DB_close()
 		{
 				mysql_close($this->db_link);
 		}
 
-		// Р’С‹РїРѕР»РЅРµРЅРёРµ Р·Р°РїСЂРѕСЃР° $query - СЃС‚СЂРѕРєР° Р·Р°РїСЂРѕСЃР° $is_select - РЅСѓР¶РЅРѕ Р»Рё РІРѕР·РІСЂР°С‰Р°С‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚
+		// Выполнение запроса $query - строка запроса $is_select - нужно ли возвращать результат
 		public function ExecQuery($query, $is_select=null)
 		{					
 			if ($query)
@@ -180,9 +170,10 @@
 			return $this->query_results;
 		}
 
-		// Р’С‹РїРѕР»РЅРёС‚СЊ Р·Р°РїСЂРѕСЃ, РІРѕР·РІСЂР°С‰Р°СЋС€РёР№ СЂРµР·СѓР»СЊС‚Р°С‚
+		// Выполнить запрос, возвращаюший результат
 		public function GetResult($sql)
 		{
+
 			$result = array();
 			if ($this->DB_connect_and_DB_choose())
 			{
@@ -195,7 +186,7 @@
 			return $result;
 		}
 
-		// Р’С‹РїРѕР»РЅРёС‚СЊ Р·Р°РїСЂРѕСЃ, РЅРµ РІРѕР·РІСЂР°С‰Р°СЋС€РёР№ СЂРµР·СѓР»СЊС‚Р°С‚
+		// Выполнить запрос, не возвращаюший результат
 		public function ExecQueryWithoutResult($sql)
 		{
 			$result = array();
